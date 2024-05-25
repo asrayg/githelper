@@ -1,71 +1,107 @@
-# GitTerminalHelper README
+# GitHelper
 
-This is the README for your extension "GitTerminalHelper". After writing up a brief description, we recommend including the following sections.
+GitHelper is a Visual Studio Code extension that assists users with Git commands and terminal issues. It offers two modes of operation: one that uses the OpenAI API and another that utilizes a locally trained DistilBERT model hosted on a Flask server. Users can switch between the two modes by renaming the extension files.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- Provides Git command assistance based on your Git repository's current state.
+- Analyzes terminal output and suggests solutions for issues.
+- Supports both OpenAI API and a locally hosted DistilBERT model for generating responses.
 
-For example if there is an image subfolder under your extension project workspace:
+## Prerequisites
 
-\!\[feature X\]\(images/feature-x.png\)
+- Visual Studio Code
+- Node.js and npm
+- Python and pip
+- Required Python libraries: `flask`, `transformers`, `torch`, `pdf2image`
+- Poppler for PDF processing
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## Setup
 
-## Requirements
+1. **Install Poppler:**
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+   - For macOS: `brew install poppler`
+   - For Ubuntu/Debian: `sudo apt-get install poppler-utils`
+   - For Windows: [Download Poppler](http://blog.alivate.com.au/poppler-windows/) and add the `bin` directory to your system's PATH.
 
-## Extension Settings
+2. **Clone the repository:**
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+   ```sh
+   git clone https://github.com/yourusername/GitHelper.git
+   cd GitHelper
+   ```
 
-For example:
+3. **Install VS Code dependencies:**
 
-This extension contributes the following settings:
+   ```sh
+   npm install
+   ```
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+4. **Install Python dependencies:**
 
-## Known Issues
+   ```sh
+   pip install flask transformers torch pdf2image
+   ```
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+5. **Set up environment variables:**
 
-## Release Notes
+   Create a `.env` file in the root of the project and add your OpenAI API key (if using the OpenAI mode):
 
-Users appreciate release notes as you update your extension.
+   ```env
+   OPENAI_API_KEY=your_openai_api_key
+   ```
 
-### 1.0.0
+## Running the Flask Server
 
-Initial release of ...
+If you choose to use the locally hosted model, you need to run the Flask server:
 
-### 1.0.1
+1. Lets set it up!
 
-Fixed issue #.
+2. **Run the server:**
 
-### 1.1.0
+   ```sh
+   python server.py
+   ```
 
-Added features X, Y, and Z.
+## Using the Extension
+
+1. **Switching between OpenAI API and local model:**
+
+   - **OpenAI API**: Rename `extension.ts` to `extension_active.ts` and `extensionusingthemodel.ts` to `extension.ts`.
+   - **Local Model**: Rename `extension.ts` to `extensionusingthemodel.ts` and `extension_active.ts` to `extension.ts`.
+
+2. **Install and Run the Extension:**
+
+   - Open the project in Visual Studio Code.
+   - Press `F5` to start debugging. This will open a new VS Code window with the extension loaded.
+   - Use the command palette (`Ctrl+Shift+P` or `Cmd+Shift+P`) and run the command `Help With Git`.
+
+## Commands
+
+- `Help With Git`: Provides assistance with Git commands and terminal output analysis.
+- `Send Terminal Command`: Sends a command to the terminal and captures the output.
+
+## Usage
+
+1. **Help With Git Command:**
+
+   - Run the command `Help With Git`.
+   - The extension will show your Git repository's information.
+   - You can ask a Git-related question or type "check terminal" to analyze the last terminal command output.
+
+2. **Send Terminal Command:**
+
+   - Run the command `Send Terminal Command` and input your command.
+   - The command will be executed in the terminal, and the output will be logged for analysis.
+
+## Contributing
+
+Feel free to submit issues and pull requests to improve the extension. Your contributions are always welcome!
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
 
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+By following the above instructions, you can easily switch between using the OpenAI API and the locally hosted DistilBERT model to get assistance with Git commands and terminal issues directly within Visual Studio Code.
