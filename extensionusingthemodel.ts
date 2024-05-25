@@ -15,12 +15,6 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     let disposable = vscode.commands.registerCommand('extension.helpWithGit', async () => {
-        const apiKey = process.env.OPENAI_API_KEY;
-        if (!apiKey) {
-            vscode.window.showErrorMessage('Your OpenAI API key is missing');
-            return;
-        }
-
         try {
             const gitInfo = await getGitInfo();
             vscode.window.showInformationMessage(`Git Info:\n${formatGitInfo(gitInfo)}`);
@@ -31,12 +25,12 @@ export function activate(context: vscode.ExtensionContext) {
                     const lastCommandInfo = await getLastCommandInfo();
                     if (lastCommandInfo) {
                         vscode.window.showInformationMessage(`Last Command: ${lastCommandInfo.command}\nOutput: ${lastCommandInfo.output}`);
-                        await analyzeTerminalOutput(lastCommandInfo, apiKey);
+                        await analyzeTerminalOutput(lastCommandInfo);
                     } else {
                         vscode.window.showErrorMessage('No previous command found.');
                     }
                 } else {
-                    await getHelpFromOpenAI(response, apiKey, gitInfo);
+                    await getHelpFromLocalModel(response, gitInfo);
                 }
             }
         } catch (error) {
@@ -97,63 +91,49 @@ function executeCommand(command: string): Promise<string> {
     });
 }
 
-async function getHelpFromOpenAI(query: string, apiKey: string, gitInfo: any) {
-    const endpoint = 'https://api.openai.com/v1/chat/completions';
+async function getHelpFromLocalModel(query: string, gitInfo: any) {
+    const endpoint = 'http://localhost:5000/ask';
     console.log(`Using endpoint: ${endpoint}`);
-    console.log(`Using API Key: ${apiKey.substring(0, 5)}...`);
 
     try {
-        const openaiResponse = await axios.post(endpoint, {
-            model: "gpt-3.5-turbo",
-            messages: [
-                { role: "system", content: `You are an efficient and helpful assistant for Git commands. Keep your responses short, concise, and in plain text. Avoid formatting the code in bash or any other language. For example, if a user asks how to clone a repository, respond with: git clone <repository_url>. Replace <repository_url> with the actual URL of the repository. Focus on providing clear and straightforward instructions for each Git command. Here is the user's Git info:\n${formatGitInfo(gitInfo)}` },
-                { role: "user", content: query }
-            ],
-            max_tokens: 150,
-            temperature: 0.5,
+        const response = await axios.post(endpoint, {
+            question: query,
+            context: formatGitInfo(gitInfo)
         }, {
             headers: {
-                'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json'
             }
         });
 
-        const message = openaiResponse.data.choices[0].message.content.trim();
+        const message = response.data.answer;
         console.log(`GitHelper's response: ${message}`);
         vscode.window.showInformationMessage(`GitHelper's Response:\n${message}`);
     } catch (error) {
         console.error('Error', error);
-        vscode.window.showErrorMessage('Failed to get help from OpenAI. Check the logs for details.');
+        vscode.window.showErrorMessage('Failed to get help from the local model. Check the logs for details.');
     }
 }
 
-async function analyzeTerminalOutput(lastCommandInfo: { command: string, output: string }, apiKey: string) {
-    const endpoint = 'https://api.openai.com/v1/chat/completions';
+async function analyzeTerminalOutput(lastCommandInfo: { command: string, output: string }) {
+    const endpoint = 'http://localhost:5000/ask';
     console.log(`Using endpoint: ${endpoint}`);
-    console.log(`Using API Key: ${apiKey.substring(0, 5)}...`);
 
     try {
-        const openaiResponse = await axios.post(endpoint, {
-            model: "gpt-3.5-turbo",
-            messages: [
-                { role: "system", content: "You are an efficient and helpful assistant for Git commands and terminal issues. Analyze the provided terminal output and suggest solutions if any issues are found." },
-                { role: "user", content: `The last command executed was:\n${lastCommandInfo.command}\nHere is the output:\n\n${lastCommandInfo.output}` }
-            ],
-            max_tokens: 300,
-            temperature: 0.5,
+        const response = await axios.post(endpoint, {
+            question: `Analyze the following terminal output for issues:\n${lastCommandInfo.command}\n${lastCommandInfo.output}`,
+            context: ""
         }, {
             headers: {
-                'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json'
             }
         });
 
-        const message = openaiResponse.data.choices[0].message.content.trim();
-        console.log(`GitHelper's response: ${message}`);
+        const message = response.data.answer;
+        console.log(`GitHelper's analysis: ${message}`);
         vscode.window.showInformationMessage(`GitHelper's Analysis:\n${message}`);
     } catch (error) {
         console.error('Error', error);
-        vscode.window.showErrorMessage('Failed to analyze terminal output with OpenAI. Check the logs for details.');
+        vscode.window.showErrorMessage('Failed to analyze terminal output with the local model. Check the logs for details.');
     }
 }
 
